@@ -22,7 +22,8 @@ class Prediction(BaseModel):
 
 # Load pre-trained models and resources
 nlp = spacy.load("en_core_web_sm")
-logistic_regression_model = joblib.load("logistic_regression_model.joblib")
+model = joblib.load(
+    r"C:\Users\JADIEL\Desktop\luxdev\fast\news_detection_model.joblib")
 
 # Define a list of news sources to scrape
 news_sources = [
@@ -36,7 +37,8 @@ news_sources = [
 def scrape_news_articles():
     news_articles = []
     for source in news_sources:
-        response = requests.get(source["url"])
+        response = requests.get(
+            source["https://www.the-star.co.ke/news/realtime/2023-04-11-state-to-reduce-some-taxes-in-2023-24-budget-ruto/"])
         soup = BeautifulSoup(response.content, "html.parser")
         headlines = soup.select(source["selector"])
         for headline in headlines:
@@ -59,14 +61,14 @@ def explain_prediction(text):
                       word_freq["real"], sentiment, len(named_entities)]
     # ...
     # Feed preprocessed news article into the trained model to obtain prediction and confidence score
-    prediction = logistic_regression_model.predict(
+    prediction = model.predict(
         np.array(feature_vector).reshape(1, -1))[0]
-    confidence = logistic_regression_model.predict_proba(
+    confidence = model.predict_proba(
         np.array(feature_vector).reshape(1, -1))[0][prediction]
     # Generate an explanation for the prediction using LIME
     explainer = LimeTextExplainer(class_names=["fake", "real"])
     exp = explainer.explain_instance(
-        text, logistic_regression_model.predict_proba, num_features=len(feature_vector))
+        text, model.predict_proba, num_features=len(feature_vector))
     explanation = {}
     for i in range(len(exp.as_list())):
         explanation[exp.as_list()[i][0]] = exp.as_list()[i][1]
